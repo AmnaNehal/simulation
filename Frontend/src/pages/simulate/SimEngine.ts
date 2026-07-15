@@ -141,9 +141,10 @@ export function runSimulation(params: SimParams): SimResult {
     const departure = serviceStart + serviceTime;
     serverFreeAt[serverIdx] = departure;
 
-    const waitTime = serviceStart - arrivalTime;
+    
     const systemTime = departure - arrivalTime;
-    const responseTime = systemTime; // time from arrival to departure (sojourn time)
+    const waitTime = systemTime - serviceTime;
+    const responseTime = waitTime; // time from arrival to departure (sojourn time)
 
     table.push({ customer: i, server: serverIdx + 1, arrivalTime, serviceStartTime: serviceStart, serviceTime, departureTime: departure, waitTime, systemTime, responseTime });
   }
