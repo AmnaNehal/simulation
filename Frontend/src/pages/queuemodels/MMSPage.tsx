@@ -10,14 +10,14 @@ const factorial = (n: number): number => n <= 1 ? 1 : n * factorial(n - 1);
 
 export default function MMSPage({ navigate }: Props) {
   const [servers, setServers] = useState('2');
-  const [meanIA, setMeanIA] = useState('2');
-  const [meanSvc, setMeanSvc] = useState('1.8');
+  const [arrivalRate, setArrivalRate] = useState('0.5');
+  const [serviceRate, setServiceRate] = useState('0.5556');
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
 
   const calculate = () => {
-    const lambda = 1 / parseFloat(meanIA);
-    const mu = 1 / parseFloat(meanSvc);
+    const lambda = parseFloat(arrivalRate);
+    const mu = parseFloat(serviceRate);
     const S = parseInt(servers);
     if (isNaN(lambda) || isNaN(mu) || isNaN(S) || S <= 0) { setError('Enter valid positive numbers.'); setResult(null); return; }
     const rho = lambda / (S * mu);
@@ -41,8 +41,8 @@ export default function MMSPage({ navigate }: Props) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20 }}>
           {([
             ['Number of Servers (S)', servers, setServers, '1'],
-            ['Mean Interarrival Time', meanIA, setMeanIA, '0.1'],
-            ['Mean Service Time', meanSvc, setMeanSvc, '0.1'],
+            ['Arrival Rate (λ)', arrivalRate, setArrivalRate, '0.001'],
+            ['Service Rate (μ)', serviceRate, setServiceRate, '0.001'],
           ] as [string, string, typeof setServers, string][]).map(([l, val, setter, step]) => (
             <div key={l}>
               <label style={lbl}>{l}</label>
@@ -59,7 +59,7 @@ export default function MMSPage({ navigate }: Props) {
           <button onClick={calculate} style={{ ...button(COLORS.blue), flex: 1 }}
             onMouseDown={e => press(e, true)} onMouseUp={e => press(e, false)} onMouseLeave={e => press(e, false)}
           >Calculate</button>
-          <button onClick={() => { setServers('2'); setMeanIA('2'); setMeanSvc('1.8'); setResult(null); setError(''); }} style={button(COLORS.surface)}
+          <button onClick={() => { setServers('2'); setArrivalRate('0.5'); setServiceRate('0.5556'); setResult(null); setError(''); }} style={button(COLORS.surface)}
             onMouseDown={e => press(e, true)} onMouseUp={e => press(e, false)} onMouseLeave={e => press(e, false)}
           >Reset</button>
         </div>

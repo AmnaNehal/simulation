@@ -10,16 +10,16 @@ const factorial = (n: number): number => n <= 1 ? 1 : n * factorial(n - 1);
 
 export default function MGSPage({ navigate }: Props) {
   const [servers, setServers] = useState('2');
-  const [meanIA, setMeanIA] = useState('2');
+  const [arrivalRate, setArrivalRate] = useState('0.5');
   const [svcDist, setSvcDist] = useState('normal');
-  const [meanSvc, setMeanSvc] = useState('1.5');
+  const [serviceRate, setServiceRate] = useState('0.6667');
   const [varSvc, setVarSvc] = useState('2.25');
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
 
   const calculate = () => {
-    const lambda = 1 / parseFloat(meanIA);
-    const mu = 1 / parseFloat(meanSvc);
+    const lambda = parseFloat(arrivalRate);
+    const mu = parseFloat(serviceRate);
     const S = parseInt(servers);
     if (isNaN(lambda) || isNaN(mu) || isNaN(S) || S <= 0) { setError('Enter valid values.'); return; }
     const rho = lambda / (S * mu);
@@ -49,8 +49,8 @@ export default function MGSPage({ navigate }: Props) {
             <input type="number" value={servers} onChange={e => setServers(e.target.value)} step="1" min="1" style={input} />
           </div>
           <div>
-            <label style={lbl}>Mean Interarrival Time</label>
-            <input type="number" value={meanIA} onChange={e => setMeanIA(e.target.value)} step="0.1" min="0.1" style={input} />
+            <label style={lbl}>Arrival Rate (λ)</label>
+            <input type="number" value={arrivalRate} onChange={e => setArrivalRate(e.target.value)} step="0.001" min="0.001" style={input} />
           </div>
           <div>
             <label style={lbl}>Service Distribution</label>
@@ -61,8 +61,8 @@ export default function MGSPage({ navigate }: Props) {
             </select>
           </div>
           <div>
-            <label style={lbl}>Mean Service Time</label>
-            <input type="number" value={meanSvc} onChange={e => setMeanSvc(e.target.value)} step="0.1" min="0.1" style={input} />
+            <label style={lbl}>Service Rate (μ)</label>
+            <input type="number" value={serviceRate} onChange={e => setServiceRate(e.target.value)} step="0.001" min="0.001" style={input} />
           </div>
           <div>
             <label style={lbl}>Variance Service Time</label>

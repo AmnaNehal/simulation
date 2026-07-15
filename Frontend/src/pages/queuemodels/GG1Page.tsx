@@ -9,29 +9,29 @@ interface Props { navigate: (r: Route) => void; }
 export default function GG1Page({ navigate }: Props) {
   const [iaDist, setIaDist] = useState('exponential');
   const [svcDist, setSvcDist] = useState('exponential');
-  const [meanIA, setMeanIA] = useState('10');
+  const [arrivalRate, setArrivalRate] = useState('0.1');
   const [varIA, setVarIA] = useState('20');
-  const [meanSvc, setMeanSvc] = useState('8');
+  const [serviceRate, setServiceRate] = useState('0.125');
   const [varSvc, setVarSvc] = useState('25');
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
 
   const getCa2 = () => {
-    const m = parseFloat(meanIA);
+    const m = 1 / parseFloat(arrivalRate);
     if (iaDist === 'exponential') return 1;
-    if (iaDist === 'poisson') return parseFloat(meanIA) / Math.pow(m, 2);
+    if (iaDist === 'poisson') return m / Math.pow(m, 2);
     return parseFloat(varIA) / Math.pow(m, 2);
   };
   const getCs2 = () => {
-    const m = parseFloat(meanSvc);
+    const m = 1 / parseFloat(serviceRate);
     if (svcDist === 'exponential') return 1;
-    if (svcDist === 'poisson') return parseFloat(meanSvc) / Math.pow(m, 2);
+    if (svcDist === 'poisson') return m / Math.pow(m, 2);
     return parseFloat(varSvc) / Math.pow(m, 2);
   };
 
   const calculate = () => {
-    const lambda = 1 / parseFloat(meanIA);
-    const mu = 1 / parseFloat(meanSvc);
+    const lambda = parseFloat(arrivalRate);
+    const mu = parseFloat(serviceRate);
     if (isNaN(lambda) || isNaN(mu) || lambda <= 0 || mu <= 0) { setError('Enter valid values.'); return; }
     const rho = lambda / mu;
     if (rho >= 1) { setError('ρ ≥ 1: System unstable.'); setResult(null); return; }
@@ -62,8 +62,8 @@ export default function GG1Page({ navigate }: Props) {
             </select>
           </div>
           <div>
-            <label style={lbl}>Mean Interarrival Time</label>
-            <input type="number" value={meanIA} onChange={e => setMeanIA(e.target.value)} step="0.1" min="0.1" style={input} />
+            <label style={lbl}>Arrival Rate (λ)</label>
+            <input type="number" value={arrivalRate} onChange={e => setArrivalRate(e.target.value)} step="0.001" min="0.001" style={input} />
           </div>
           {needsVariance(iaDist) && (
             <div>
@@ -82,8 +82,8 @@ export default function GG1Page({ navigate }: Props) {
             </select>
           </div>
           <div>
-            <label style={lbl}>Mean Service Time</label>
-            <input type="number" value={meanSvc} onChange={e => setMeanSvc(e.target.value)} step="0.1" min="0.1" style={input} />
+            <label style={lbl}>Service Rate (μ)</label>
+            <input type="number" value={serviceRate} onChange={e => setServiceRate(e.target.value)} step="0.001" min="0.001" style={input} />
           </div>
           {needsVariance(svcDist) && (
             <div>

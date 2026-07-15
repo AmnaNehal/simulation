@@ -7,16 +7,16 @@ import { panel, input, select, label as lbl, button, press, errorBox, COLORS, in
 interface Props { navigate: (r: Route) => void; }
 
 export default function MG1Page({ navigate }: Props) {
-  const [meanIA, setMeanIA] = useState('0.3');
+  const [arrivalRate, setArrivalRate] = useState('3.3333');
   const [svcDist, setSvcDist] = useState('normal');
-  const [meanSvc, setMeanSvc] = useState('0.25');
+  const [serviceRate, setServiceRate] = useState('4');
   const [varSvc, setVarSvc] = useState('0.0625');
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
 
   const calculate = () => {
-    const lambda = 1 / parseFloat(meanIA);
-    const mu = 1 / parseFloat(meanSvc);
+    const lambda = parseFloat(arrivalRate);
+    const mu = parseFloat(serviceRate);
     if (isNaN(lambda) || isNaN(mu) || lambda <= 0 || mu <= 0) { setError('Enter valid values.'); return; }
     const rho = lambda / mu;
     if (rho >= 1) { setError('ρ ≥ 1: System unstable.'); setResult(null); return; }
@@ -40,8 +40,8 @@ export default function MG1Page({ navigate }: Props) {
             <div style={infoBox(COLORS.mute)}>Exponential (Poisson)</div>
           </div>
           <div>
-            <label style={lbl}>Mean Inter-Arrival Time</label>
-            <input type="number" value={meanIA} onChange={e => setMeanIA(e.target.value)} step="0.01" min="0.01" style={input} />
+            <label style={lbl}>Arrival Rate (λ)</label>
+            <input type="number" value={arrivalRate} onChange={e => setArrivalRate(e.target.value)} step="0.001" min="0.001" style={input} />
           </div>
           <div>
             <label style={lbl}>Service Distribution</label>
@@ -52,8 +52,8 @@ export default function MG1Page({ navigate }: Props) {
             </select>
           </div>
           <div>
-            <label style={lbl}>Mean Service Time</label>
-            <input type="number" value={meanSvc} onChange={e => setMeanSvc(e.target.value)} step="0.01" min="0.01" style={input} />
+            <label style={lbl}>Service Rate (μ)</label>
+            <input type="number" value={serviceRate} onChange={e => setServiceRate(e.target.value)} step="0.001" min="0.001" style={input} />
           </div>
           <div>
             <label style={lbl}>Variance Service Time</label>

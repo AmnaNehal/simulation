@@ -7,35 +7,24 @@ import { panel, input, select, label as lbl, button, press, errorBox, COLORS } f
 interface Props { navigate: (r: Route) => void; }
 
 const factorial = (n: number): number => n <= 1 ? 1 : n * factorial(n - 1);
-const needsVariance = (d: string) => d !== 'exponential' && d !== 'poisson';
 
 export default function GGSPage({ navigate }: Props) {
   const [servers, setServers] = useState('2');
-  const [iaDist, setIaDist] = useState('exponential');
-  const [svcDist, setSvcDist] = useState('exponential');
-  const [meanIA, setMeanIA] = useState('10');
+  const [iaDist, setIaDist] = useState('normal');
+  const [svcDist, setSvcDist] = useState('normal');
+  const [arrivalRate, setArrivalRate] = useState('0.1');
   const [varIA, setVarIA] = useState('20');
-  const [meanSvc, setMeanSvc] = useState('8');
+  const [serviceRate, setServiceRate] = useState('0.125');
   const [varSvc, setVarSvc] = useState('25');
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
 
-  const getCa2 = () => {
-    const m = parseFloat(meanIA);
-    if (iaDist === 'exponential') return 1;
-    if (iaDist === 'poisson') return m / Math.pow(m, 2);
-    return parseFloat(varIA) / Math.pow(m, 2);
-  };
-  const getCs2 = () => {
-    const m = parseFloat(meanSvc);
-    if (svcDist === 'exponential') return 1;
-    if (svcDist === 'poisson') return m / Math.pow(m, 2);
-    return parseFloat(varSvc) / Math.pow(m, 2);
-  };
+  const getCa2 = () => parseFloat(varIA) / Math.pow(1 / parseFloat(arrivalRate), 2);
+  const getCs2 = () => parseFloat(varSvc) / Math.pow(1 / parseFloat(serviceRate), 2);
 
   const calculate = () => {
-    const lambda = 1 / parseFloat(meanIA);
-    const mu = 1 / parseFloat(meanSvc);
+    const lambda = parseFloat(arrivalRate);
+    const mu = parseFloat(serviceRate);
     const S = parseInt(servers);
     if (isNaN(lambda) || isNaN(mu) || isNaN(S) || S <= 0) { setError('Enter valid values.'); return; }
     const rho = lambda / (S * mu);
@@ -66,39 +55,35 @@ export default function GGSPage({ navigate }: Props) {
           <div>
             <label style={lbl}>Interarrival Distribution</label>
             <select value={iaDist} onChange={e => setIaDist(e.target.value)} style={select}>
-              <option value="exponential">Exponential</option>
-              <option value="poisson">Poisson</option>
               <option value="normal">Normal</option>
               <option value="uniform">Uniform</option>
               <option value="gamma">Gamma</option>
             </select>
           </div>
           <div>
-            <label style={lbl}>Mean Interarrival Time</label>
-            <input type="number" value={meanIA} onChange={e => setMeanIA(e.target.value)} step="0.1" min="0.1" style={input} />
+            <label style={lbl}>Arrival Rate (λ)</label>
+            <input type="number" value={arrivalRate} onChange={e => setArrivalRate(e.target.value)} step="0.001" min="0.001" style={input} />
           </div>
-          {needsVariance(iaDist) && <div>
+          <div>
             <label style={lbl}>Variance Interarrival</label>
             <input type="number" value={varIA} onChange={e => setVarIA(e.target.value)} step="0.1" min="0" style={input} />
-          </div>}
+          </div>
           <div>
             <label style={lbl}>Service Distribution</label>
             <select value={svcDist} onChange={e => setSvcDist(e.target.value)} style={select}>
-              <option value="exponential">Exponential</option>
-              <option value="poisson">Poisson</option>
               <option value="normal">Normal</option>
               <option value="uniform">Uniform</option>
               <option value="gamma">Gamma</option>
             </select>
           </div>
           <div>
-            <label style={lbl}>Mean Service Time</label>
-            <input type="number" value={meanSvc} onChange={e => setMeanSvc(e.target.value)} step="0.1" min="0.1" style={input} />
+            <label style={lbl}>Service Rate (μ)</label>
+            <input type="number" value={serviceRate} onChange={e => setServiceRate(e.target.value)} step="0.001" min="0.001" style={input} />
           </div>
-          {needsVariance(svcDist) && <div>
+          <div>
             <label style={lbl}>Variance Service</label>
             <input type="number" value={varSvc} onChange={e => setVarSvc(e.target.value)} step="0.1" min="0" style={input} />
-          </div>}
+          </div>
         </div>
         {error && <div style={errorBox}>⚠ {error}</div>}
         <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>

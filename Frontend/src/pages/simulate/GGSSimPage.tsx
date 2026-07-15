@@ -11,22 +11,21 @@ interface Props { navigate: (r: Route) => void; }
 
 export default function GGSSimPage({ navigate }: Props) {
   const [servers, setServers] = useState('2');
-  const [meanIA, setMeanIA] = useState('3');
-  const svcState = useServiceDist('exponential');
-  const [meanSvc, setMeanSvc] = useState('2');
-  const [numCust, setNumCust] = useState('300');
+  const [arrivalRate, setArrivalRate] = useState('0.3333');
+  const svcState = useServiceDist('normal');
+  const [serviceRate, setServiceRate] = useState('0.5');
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
   const [showTable, setShowTable] = useState(false);
 
   const simulate = () => {
-    const S = parseInt(servers), ia = parseFloat(meanIA), svc = parseFloat(meanSvc), n = parseInt(numCust);
-    if (isNaN(S) || S < 1 || isNaN(ia) || ia <= 0 || isNaN(svc) || svc <= 0 || isNaN(n) || n < 1) {
+    const S = parseInt(servers), lambda = parseFloat(arrivalRate), mu = parseFloat(serviceRate);
+    const n = Math.floor(Math.random() * 901) + 100; // randomized customer count (100-1000)
+    if (isNaN(S) || S < 1 || isNaN(lambda) || lambda <= 0 || isNaN(mu) || mu <= 0) {
       setError('Please enter valid positive values.'); return;
     }
-    if (n > 10000) { setError('Max 10,000 customers allowed.'); return; }
     try {
-      const res = runSimulation({ servers: S, arrivalRate: 1 / ia, serviceRate: 1 / svc, numCustomers: n, serviceDist: svcState.dist, serviceParams: svcState.getParams(svc) });
+      const res = runSimulation({ servers: S, arrivalRate: lambda, serviceRate: mu, numCustomers: n, serviceDist: svcState.dist, serviceParams: svcState.getParams(1 / mu) });
       setResult(res); setError('');
     } catch { setError('Simulation failed.'); }
   };
@@ -34,19 +33,19 @@ export default function GGSSimPage({ navigate }: Props) {
   return (
     <ModelLayout title="G/G/S Simulation" subtitle="General service — Poisson arrivals, NO priority queuing" badge="G/G/S Simulator" navigate={navigate} back="simulation" accentColor={COLORS.yellow}>
       <div style={infoBox(COLORS.mute)}>
-        ℹ <strong>No Priority:</strong> All customers are served in FCFS (First Come, First Served) order. Service distribution: Exponential, Poisson, Uniform, Normal, or Gamma.
+        ℹ <strong>No Priority:</strong> All customers are served in FCFS (First Come, First Served) order. Service distribution: Uniform, Normal, or Gamma.
       </div>
 
       <div style={panel}>
         <h2 style={{ color: COLORS.ink, marginBottom: 20, fontWeight: 800 }}>Simulation Parameters</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
-          {([['Number of Servers', servers, setServers, '1', '1'], ['Mean Interarrival Time', meanIA, setMeanIA, '0.1', '0.1'], ['Mean Service Time', meanSvc, setMeanSvc, '0.1', '0.1'], ['Number of Customers', numCust, setNumCust, '1', '1']] as any[]).map(([l, val, setter, step, min]: any) => (
+          {([['Number of Servers', servers, setServers, '1', '1'], ['Arrival Rate (λ)', arrivalRate, setArrivalRate, '0.001', '0.001'], ['Service Rate (μ)', serviceRate, setServiceRate, '0.001', '0.001']] as any[]).map(([l, val, setter, step, min]: any) => (
             <div key={l}>
               <label style={lbl}>{l}</label>
               <input type="number" value={val} onChange={e => setter(e.target.value)} step={step} min={min} style={input} />
             </div>
           ))}
-          <ServiceDistFields state={svcState} />
+          <ServiceDistFields state={svcState} options={['uniform', 'normal', 'gamma']} />
           <div>
             <label style={lbl}>Arrival</label>
             <div style={infoBox(COLORS.mute)}>Poisson (fixed)</div>

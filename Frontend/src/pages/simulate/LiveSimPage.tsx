@@ -62,8 +62,8 @@ export default function LiveSimPage({ navigate }: Props) {
 
   // Live-editable params (applied on "Apply & Restart")
   const [numCounters, setNumCounters] = useState('2');
-  const [meanIA, setMeanIA] = useState('1.5');
-  const [meanSvc, setMeanSvc] = useState('2.5');
+  const [arrivalRate, setArrivalRate] = useState('0.6667');
+  const [serviceRate, setServiceRate] = useState('0.4');
   const svcState = useServiceDist('exponential');
   const [speed, setSpeed] = useState(1);
 
@@ -86,17 +86,17 @@ export default function LiveSimPage({ navigate }: Props) {
     totalWait: 0,
     totalResponse: 0,
     totalServiceBusy: 0,
-    params: { counters: 2, ia: 1.5, svc: 2.5, dist: 'exponential' as ServiceDist, distParams: undefined as ServiceDistParams | undefined },
+    params: { counters: 2, lambda: 0.6667, mu: 0.4, dist: 'exponential' as ServiceDist, distParams: undefined as ServiceDistParams | undefined },
   });
 
   function resetSim() {
     const S = Math.max(1, Math.min(8, parseInt(numCounters) || 1));
-    const ia = Math.max(0.05, parseFloat(meanIA) || 1);
-    const svc = Math.max(0.05, parseFloat(meanSvc) || 1);
+    const lambda = Math.max(0.01, parseFloat(arrivalRate) || 1);
+    const mu = Math.max(0.01, parseFloat(serviceRate) || 1);
     const positions = counterPositions(S);
     sim.current = {
       simTime: 0,
-      nextArrival: expRandom(1 / ia),
+      nextArrival: expRandom(lambda),
       nextId: 1,
       queue: [],
       active: [],
@@ -106,7 +106,7 @@ export default function LiveSimPage({ navigate }: Props) {
       totalWait: 0,
       totalResponse: 0,
       totalServiceBusy: 0,
-      params: { counters: S, ia, svc, dist: svcState.dist, distParams: svcState.getParams(svc) },
+      params: { counters: S, lambda, mu, dist: svcState.dist, distParams: svcState.getParams(1 / mu) },
     };
     lastTsRef.current = null;
     setMetrics({ simTime: 0, arrived: 0, served: 0, inQueue: 0, inService: 0, avgWait: 0, avgResponse: 0, utilization: 0, throughput: 0 });
@@ -149,7 +149,7 @@ export default function LiveSimPage({ navigate }: Props) {
           };
           s.queue.push(cust);
           s.arrived++;
-          s.nextArrival += expRandom(1 / s.params.ia);
+          s.nextArrival += expRandom(s.params.lambda);
         }
 
         // Free counters whose service has actually completed
@@ -174,7 +174,7 @@ export default function LiveSimPage({ navigate }: Props) {
         for (const c of s.counters) {
           if (!c.busy && s.queue.length > 0) {
             const cust = s.queue.shift()!;
-            const svcTime = generateServiceTime(s.params.dist, 1 / s.params.svc, s.params.distParams);
+            const svcTime = generateServiceTime(s.params.dist, s.params.mu, s.params.distParams);
             cust.state = 'toCounter';
             cust.counterIdx = s.counters.indexOf(c);
             cust.targetX = c.x; cust.targetY = c.y;
@@ -352,12 +352,12 @@ export default function LiveSimPage({ navigate }: Props) {
             <input style={inputStyleBase} type="number" min={1} max={8} value={numCounters} onChange={e => setNumCounters(e.target.value)} />
           </div>
           <div>
-            <label style={labelStyleBase}>Mean Interarrival Time</label>
-            <input style={inputStyleBase} type="number" step="0.1" min={0.1} value={meanIA} onChange={e => setMeanIA(e.target.value)} />
+            <label style={labelStyleBase}>Arrival Rate (λ)</label>
+            <input style={inputStyleBase} type="number" step="0.01" min={0.01} value={arrivalRate} onChange={e => setArrivalRate(e.target.value)} />
           </div>
           <div>
-            <label style={labelStyleBase}>Mean Service Time</label>
-            <input style={inputStyleBase} type="number" step="0.1" min={0.1} value={meanSvc} onChange={e => setMeanSvc(e.target.value)} />
+            <label style={labelStyleBase}>Service Rate (μ)</label>
+            <input style={inputStyleBase} type="number" step="0.01" min={0.01} value={serviceRate} onChange={e => setServiceRate(e.target.value)} />
           </div>
           <ServiceDistFields state={svcState} />
           <div>
